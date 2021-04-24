@@ -90,11 +90,11 @@ class DB
         return $this;
     }
 
-    public function action($action, $table, $options = null)
+    public function action($action, $table, $where, $options = null)
     {
 
         if(isset($action) && isset($table)) {
-            $this->_sql = "{$action} FROM {$table} {$this->_where} {$options}";
+            $this->_sql = "{$action} FROM {$table} {$where} {$options}";
                     
             if(!$this->query($this->_sql, $this->_values)) {
                 return $this;
@@ -107,6 +107,9 @@ class DB
 
     public function select($fields = '*')
     {
+        if(is_array($fields)) {
+              $fields = implode(', ', $fields);
+        }
         $this->_fields = $fields;
         return $this;
     }
@@ -151,12 +154,12 @@ class DB
 
     public function get($options = null)
     {
-        return $this->action(self::ACTION_SELECT . $this->_fields, $this->_table, $options);
+        return $this->action(self::ACTION_SELECT . $this->_fields, $this->_table, $this->_where, $options);
     }
 
     public function delete()
     {
-        return $this->action(self::ACTION_DELETE, $this->_table);
+        return $this->action(self::ACTION_DELETE, $this->_table, $this->_where);
     }
 
 
