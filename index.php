@@ -4,4 +4,6 @@ require_once 'src/core/init.php';
 
 use Classes\DB;
 
-var_dump(DB::find(3));
+$data = DB::singleton()->select()->table('users')->where(['id', '=', 1])->get();
+
+var_dump($data);
