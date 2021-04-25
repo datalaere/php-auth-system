@@ -9,10 +9,16 @@ use PDOException;
 class Database
 {
 
+    private const ACTION_INSERT = 'INSERT INTO ';
+    private const ACTION_UPDATE = 'UPDATE ';
     private const ACTION_SELECT = 'SELECT ';
     private const ACTION_DELETE = 'DELETE ';
-    private const ACTION_WHERE = 'WHERE ';
 
+    protected $fillable = [];
+    protected $fields = [];
+    protected $prefix = null;
+    protected $table = null;
+    
     private $_driver,
             $_host,
             $_dbname,
@@ -22,9 +28,7 @@ class Database
     private $_pdo,
             $_sql,
             $_query,
-            $_table,
             $_where,
-            $_fields,
             $_results,
             $_count = 0,
             $_values = [],
@@ -45,6 +49,7 @@ class Database
 
         try {
             $this->_pdo = new PDO("{$this->_driver}:host={$this->_host};dbname={$this->_dbname}", $this->_username, $this->_password);
+            $this->_pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
         } catch(PDOException $error) {
             die($error->getMessage());
         }
@@ -55,7 +60,6 @@ class Database
         $this->_error = false;
 
         if($this->_query = $this->_pdo->prepare($sql)) {
-
             $parameter = 1;
             if(count($values)) {
                 foreach($values as $value) {
@@ -65,8 +69,10 @@ class Database
             }
 
             if($this->_query->execute()) {
-                $this->_results = $this->_query->fetchAll($this->_fetchStyle);
-                $this->_count = $this->_query->rowCount();
+                if ($this->_query->rowCount() > 0) {
+                    $this->_results = $this->_query->fetchAll($this->_fetchStyle);
+                    $this->_count = $this->_query->rowCount();
+                }
             } else {
                 $this->_error = true;
             }
@@ -79,7 +85,7 @@ class Database
     {
 
         if(isset($action) && isset($table)) {
-            $this->_sql = "{$action} FROM {$table} {$where} {$options}";
+            $this->_sql = trim("{$action} FROM {$table} {$where} {$options}");
                     
             if(!$this->query($this->_sql, $this->_values)) {
                 return $this;
@@ -95,22 +101,26 @@ class Database
         if(is_array($fields)) {
               $fields = implode(', ', $fields);
         }
-        $this->_fields = $fields;
+        $this->fields = $fields;
         return $this;
     }
 
     public function table($table)
     {
         if($table) { 
-            $this->_table = $table;
+            $this->table = $table;
             return $this;
         }
 
         return false;
     }
 
-    public function where($where = [])
+    public function where($where)
     {
+        if(is_string($where)) {
+            $where = explode(' ', trim($where));
+        }
+
         if(count($where) === 3) {
             $operators = ['=', '>', '<', '>=', '<='];
 
@@ -119,7 +129,7 @@ class Database
             $value = $where[2];
 
             if(in_array($operator, $operators)) {
-                $this->_where = self::ACTION_WHERE . "{$field} {$operator} ?";
+                $this->_where = "WHERE {$field} {$operator} ?";
                 $this->_values = [$value];
                 return $this;
             }
@@ -137,23 +147,86 @@ class Database
 
     public function get($options = null)
     {
-        return $this->action(self::ACTION_SELECT . $this->_fields, $this->_table, $this->_where, $options);
+        return $this->action(self::ACTION_SELECT . $this->fields, $this->table, $this->_where, $options);
     }
 
     public function delete()
     {
-        return $this->action(self::ACTION_DELETE, $this->_table, $this->_where);
+        return $this->action(self::ACTION_DELETE, $this->table, $this->_where);
     }
 
+    public function insert($fields = [])
+    {
+        if(count($fields)) {
+            $keys = array_keys($fields);
+            $values = null;
+            $counter = 1;
+
+            foreach($fields as $field) {
+                $values .= '?';
+                if($counter < count($fields)) {
+                    $values .= ', ';
+                }
+                $counter++;
+            }
+
+            $sql = self::ACTION_INSERT . $this->table . ' (`' . implode('`, `', $keys) . '`) ' . "VALUES ($values)";
+
+            if(!$this->query($sql, $fields)->error()) {
+                return $this->_pdo->lastInsertId();
+            }
+        }
+
+        return false;
+    }
+
+    public function update($fields)
+    {
+       $set = '';
+       $counter = 1;
+
+       foreach($fields as $name => $value) {
+           $set .= "{$name} = ?";
+           if($counter < count($fields)) {
+            $set .= ', ';
+            }
+            $counter++;
+       }
+       
+       $sql = self::ACTION_UPDATE . $this->table . " SET {$set} " . $this->_where;
+    
+       $this->_values = array_merge($fields, $this->_values);
+
+       if(!$this->query($sql, $this->_values)->error()) {
+            return true;
+        }
+
+       return false;
+    }
+
+    public function results()
+    {
+        return $this->_results;
+    }
+
+    public function first()
+    {
+        return $this->results()[0];
+    }
 
     public function error()
     {
         return $this->_error;
     }
 
-    public function find($id, $singleton = true)
+    public function count()
     {
-        return $id;
+        return $this->_count;
+    }
+
+    public function find($id)
+    {
+        return $this->where(['id', '=', $id]);
     }
     
 }

@@ -6,7 +6,7 @@ return [
         'host' => '127.0.0.1',
         'username' => 'root',
         'password' => 'mysql',
-        'name' => 'php-auth-system'
+        'dbname' => 'auth-system'
     ],
     'cookie' => [
         'name' => 'hash',
@@ -14,8 +14,5 @@ return [
     ],
     'session' => [
         'name' => 'user'
-    ],
-    'aliases' => [
-        'DB' => 'Classes\Proxies\DB'
     ]
 ];
