@@ -5,7 +5,7 @@ namespace Classes;
 abstract class Singleton
 {
     /**
-     * The instance being proxied.
+     * The instance being registered to the singleton.
      * 
      */
     protected static $instance;
@@ -18,19 +18,5 @@ abstract class Singleton
         }
 
         return self::$instance[static::class];
-    }
-
-    /**
-     * Handle dynamic, static calls to the object.
-     *
-     * @param  string  $method
-     * @param  array   $args
-     * @return mixed
-     */
-    public static function __callStatic($method, $args)
-    {
-        $instance = static::singleton();
-
-        return $instance->$method(...$args);
     }
 }

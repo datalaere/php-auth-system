@@ -2,8 +2,8 @@
 
 require_once 'src/core/init.php';
 
-use Classes\DB;
+use Classes\Proxies\DB;
 
-$data = DB::singleton()->select()->table('users')->where(['id', '=', 1])->get();
+$db = DB::select()->table('users')->get()->sql();
 
-var_dump($data);
+var_dump($db);

@@ -3,12 +3,10 @@
 namespace Classes;
 
 use PDO;
+use Exception;
 use PDOException;
 
-use Classes\Singleton;
-use Classes\Config;
-
-class DB extends Singleton
+class Database
 {
 
     private const ACTION_SELECT = 'SELECT ';
@@ -26,10 +24,10 @@ class DB extends Singleton
             $_query,
             $_table,
             $_where,
-            $_values,
             $_fields,
             $_results,
             $_count = 0,
+            $_values = [],
             $_error = false,
             $_fetchStyle = PDO::FETCH_OBJ;
 
@@ -42,11 +40,7 @@ class DB extends Singleton
             $this->_username = $config['username'];
             $this->_password = $config['password'];
         } else {
-            $this->_driver = Config::get('db.driver');
-            $this->_host =  Config::get('db.host');
-            $this->_dbname = Config::get('db.name');
-            $this->_username = Config::get('db.username');
-            $this->_password = Config::get('db.password');
+            throw new Exception('Missing config!');
         }
 
         try {
@@ -92,7 +86,7 @@ class DB extends Singleton
             }
         }
 
-        return false;
+        return $this;
        
     }
 
@@ -137,10 +131,8 @@ class DB extends Singleton
     public function sql()
     {
         if($this->_sql) {
-            return $this->query($this->_sql);
+            return $this->_sql;
         }
-
-        return $this->error();
     }
 
     public function get($options = null)
