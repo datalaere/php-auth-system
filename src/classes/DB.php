@@ -4,16 +4,16 @@ namespace Classes;
 
 use PDO;
 use PDOException;
+
+use Classes\Singleton;
 use Classes\Config;
 
-class DB
+class DB extends Singleton
 {
 
     private const ACTION_SELECT = 'SELECT ';
     private const ACTION_DELETE = 'DELETE ';
     private const ACTION_WHERE = 'WHERE ';
-
-    private static $_instance = null;
 
     private $_driver,
             $_host,
@@ -54,15 +54,6 @@ class DB
         } catch(PDOException $error) {
             die($error->getMessage());
         }
-    }
-
-    public static function singleton()
-    {
-        if(!isset(self::$_instance)) {
-            self::$_instance = new DB();
-        }
-
-        return self::$_instance;
     }
 
     public function query($sql, $values = [])
@@ -170,10 +161,7 @@ class DB
 
     public function find($id, $singleton = true)
     {
-        if($singleton) {
-            $db = static::singleton();
-        }
-
         return $id;
     }
+    
 }
