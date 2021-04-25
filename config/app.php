@@ -14,5 +14,8 @@ return [
     ],
     'session' => [
         'name' => 'user'
+    ],
+    'aliases' => [
+        'DB' => 'Classes\Proxies\DB'
     ]
 ];
