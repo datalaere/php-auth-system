@@ -105,7 +105,7 @@ class Database
         return $this;
     }
 
-    public function table($table)
+    public function table($table = '')
     {
         if($table) { 
             $this->table = $table;
@@ -115,10 +115,14 @@ class Database
         return false;
     }
 
-    public function where($where)
+    public function where($field, $operator = '', $value = '')
     {
-        if(is_string($where)) {
-            $where = explode(' ', trim($where));
+        if(is_string($field) && empty($operator) && empty($value)) {
+            $where = explode(' ', trim($field));
+        } elseif(is_array($field)) {
+            $where = $field;
+        } else {
+            $where = [$field, $operator, $value];
         }
 
         if(count($where) === 3) {
@@ -147,7 +151,11 @@ class Database
 
     public function get($options = null)
     {
-        return $this->action(self::ACTION_SELECT . $this->fields, $this->table, $this->_where, $options);
+        $data = $this->action(self::ACTION_SELECT . $this->fields, $this->table, $this->_where, $options);
+        if($data->count()) {
+            return $data->results();
+        }
+        return false;
     }
 
     public function delete()
@@ -211,7 +219,10 @@ class Database
 
     public function first()
     {
-        return $this->results()[0];
+        if($this->exists()) {
+            return $this->results()[0];
+        }
+        return false;
     }
 
     public function error()
@@ -224,9 +235,17 @@ class Database
         return $this->_count;
     }
 
-    public function find($id)
+    public function exists()
     {
-        return $this->where(['id', '=', $id]);
+        if($this->get()) {
+            return true;
+        }
+        return false;
+    }
+
+    public function find($id, $field = 'id')
+    {
+        return $this->select()->table()->where($field, '=', $id)->first();
     }
     
 }
