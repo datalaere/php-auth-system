@@ -73,5 +73,6 @@ if(Request::exists()) {
     <input type="password" name="password_match" id="password_match" autocomplete="off">
     </div>
 
+    <input type="hidden" name="token" value="">
     <input type="submit" value="Register">
 </form>
