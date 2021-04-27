@@ -6,6 +6,9 @@ use Classes\Validate;
 use Classes\Database;
 use Classes\Error;
 use Classes\Config;
+use Classes\Token;
+
+if(!Request::token()) {
 
 $db = new Database(Config::get('db'));
 $error = new Error;
@@ -37,8 +40,6 @@ $simple_rules = [
     'password_match' => 'required|match:password'
 
 ];
-
-if(Request::exists()) {
     $validater = new Validate($db, $error);
     $validation = $validater->validate($simple_rules);
 
@@ -49,6 +50,8 @@ if(Request::exists()) {
             }
         }
     }
+} else {
+    echo 'ERROR!';
 }
 ?>
 
@@ -73,6 +76,6 @@ if(Request::exists()) {
     <input type="password" name="password_match" id="password_match" autocomplete="off">
     </div>
 
-    <input type="hidden" name="token" value="">
+    <?php e(Token::csrf(), true) ?>
     <input type="submit" value="Register">
 </form>

@@ -3,6 +3,7 @@
 namespace Classes;
 
 use Classes\Session;
+use Classes\Token;
 
 class Request
 {
@@ -62,6 +63,20 @@ class Request
     public static function all()
     {
         return array_merge($_POST, $_GET);
+    }
+
+    public static function token()
+    {
+        if(static::exists()) {
+            return Token::get();
+        }
+
+        return false;
+    }
+
+    public static function session($name)
+    {
+        return Session::get($name);
     }
     
 }

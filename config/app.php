@@ -13,6 +13,7 @@ return [
         'expiry' => 604800
     ],
     'session' => [
-        'name' => 'user'
+        'name' => 'user',
+        'token' => '_token'
     ]
 ];
